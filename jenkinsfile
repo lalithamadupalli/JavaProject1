@@ -1,13 +1,6 @@
-pipeline {
-    agent any
+<h1 align="center" style="background-color:red"> Hello, Welcome to NexSoft Technologies !!! </h1>
 
-    stages {
-        stage('parameters') {
-            steps {
-                script {
-                 properties([parameters([gitParameter(branch: '', branchFilter: '.*', defaultValue: 'v1.0', name: 'project-tags', quickFilterEnabled: false, selectedValue: 'NONE', sortMode: 'NONE', tagFilter: '*', type: 'GitParameterDefinition')])])   
-                }
-            }
-        }
-    }
-}
+<body style="background-color:orange">
+  <div style="background-color:red">
+  </div>
+</body>
