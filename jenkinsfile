@@ -4,7 +4,8 @@ pipeline {
     stages {
         stage('checkout') {
             steps {
-               
+               git credentialsId: '25b2f712-2cb4-4628-9eca-ae5b91e4eaa5', url: 'https://github.com/lalithamadupalli/JavaProject1.git'
+               }       
         stage('parameters') {
             steps {
                 script {
