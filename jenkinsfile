@@ -49,7 +49,7 @@ REPOSITORY_URI= "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/$
             ], 
                     credentialsId: 'nexus', 
                     groupId: 'com.example.maven-project', 
-                    nexusUrl: '13.127.245.170:8081', 
+                    nexusUrl: 'http://3.110.28.73:8081', 
                     nexusVersion: 'nexus3', 
                     protocol: 'http', 
                     repository: 'java-nexus', 
