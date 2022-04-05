@@ -1,20 +1,86 @@
 pipeline {
     agent any
+    tools {
+        maven 'maven3.8'
+        
+    }
+    environment
+
+{
+
+AWS_ACCOUNT_ID="021893396084"
+
+AWS_DEFAULT_REGION="ap-south-1"
+
+IMAGE_REPO_NAME="jen-java"
+
+REPOSITORY_URI= "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${IMAGE_REPO_NAME}"
+
+}
+
 
     stages {
         stage('checkout') {
             steps {
-               git credentialsId: 'git', url: 'https://github.com/lalithamadupalli/JavaProject1.git'
-               }      
-        stage('parameters') {
-            steps {
-                script {
-                 properties([parameters([gitParameter(branch: '', branchFilter: '.*', defaultValue: 'v1.0', name: 'project-tags', quickFilterEnabled: false, selectedValue: 'NONE', sortMode: 'NONE', tagFilter: '*', type: 'GitParameterDefinition')])])   
-                }
+                git credentialsId: 'git', url: 'https://github.com/lalithamadupalli/JavaProject1.git'
             }
+        }
+        stage('build') {
+            steps {
+                sh 'mvn clean install'
+            }
+        }
+        //stage('SonarQube Analysis') {
+           // steps {
+               // withSonarQubeEnv('sonarqube') {
+                //sh "mvn clean verify sonar:sonar"
+                //}
+            //}
+        //}
+        stage('nexus') {
+            steps {
+            nexusArtifactUploader artifacts: [
+                [
+                    artifactId: 'maven-project', 
+                    classifier: '',
+                    file: '/var/lib/jenkins/workspace/jenkins-java/webapp/target/webapp.war', 
+                    type: 'war'
+                ]
+            ], 
+                    credentialsId: 'nexus', 
+                    groupId: 'com.example.maven-project', 
+                    nexusUrl: '13.127.245.170:8081', 
+                    nexusVersion: 'nexus3', 
+                    protocol: 'http', 
+                    repository: 'java-nexus', 
+                    version: '1.0.0'
+            }
+        }
+       stage('Login to AWS ECR'){
+           steps{
+             script{
+               sh "whoami && pwd && /usr/local/bin/aws ecr get-login-password --region
+               ${AWS_DEFAULT_REGION} | docker login --username AWS --password-stdin
+               ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com"
+               }
+               }
+               }
+        stage('Building Docker Image'){
+           steps{
+             script{
+                sh "docker build . -t ${REPOSITORY_URI}:mavenwebapp-${COMMIT}"
+                }
+                }
+                }
+         stage('Pushing Docker image into ECR'){
+           steps{
+             script{
+                sh "docker push ${REPOSITORY_URI}:mavenwebapp-${COMMIT}"
+                }
+                }
+                }
+
+   
         }
     }
 }
-}
-
-
