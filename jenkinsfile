@@ -16,6 +16,9 @@ IMAGE_REPO_NAME="jen-java"
 
 REPOSITORY_URI= "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${IMAGE_REPO_NAME}"
 
+DOCKERHUB_CREDENTIALS=credentials('docker')
+
+
 }
 
 
@@ -30,52 +33,91 @@ REPOSITORY_URI= "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/$
                 sh 'mvn clean install'
             }
         }
-        //stage('SonarQube Analysis') {
-           // steps {
-               // withSonarQubeEnv('sonarqube') {
-                //sh "mvn clean verify sonar:sonar"
-                //}
-            //}
-        //}
+        // stage('SonarQube Analysis') {
+        //     steps {
+        //       withSonarQubeEnv('sonarqube') {
+        //         sh "mvn clean verify sonar:sonar"
+        //         }
+        //     }
+        // }
         stage('nexus') {
             steps {
-            nexusArtifactUploader artifacts: [
-                [
-                    artifactId: 'maven-project', 
-                    classifier: '',
-                    file: '/var/lib/jenkins/workspace/jenkins-java/webapp/target/webapp.war', 
-                    type: 'war'
-                ]
-            ], 
-                    credentialsId: 'nexus', 
-                    groupId: 'com.example.maven-project', 
-                    nexusUrl: 'http://3.110.28.73:8081', 
-                    nexusVersion: 'nexus3', 
-                    protocol: 'http', 
-                    repository: 'java-nexus', 
-                    version: '1.0.0'
+              nexusArtifactUploader artifacts: [
+                  [
+                      artifactId: 'maven-project', 
+                      classifier: '', 
+                      file: 'webapp/target/webapp.war', 
+                      type: 'war'
+                    ]
+                ], 
+                credentialsId: 'nexus', 
+                groupId: 'com.example.maven-project', 
+                nexusUrl: 'http://http://13.127.124.29:8081', 
+                nexusVersion: 'nexus3', 
+                protocol: 'http', 
+                repository: 'java-nexus', 
+                version: '1.0.0'
             }
         }
-       stage('Login to AWS ECR'){
-           steps{
-             script{
-               sh "/usr/local/bin/aws ecr get-login-password --region ${AWS_DEFAULT_REGION} | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com"
-               }
-           }
-        }
-        stage('Building Docker Image'){
-           steps{
-             script{
-                sh "docker build . -t ${REPOSITORY_URI}:mavenwebapp-${COMMIT}"
+        stage('Docker Build and Tag') {
+              steps {
+                  sh 'docker build -t jenkins-java:latest .'
+                  sh 'docker tag jenkins-java mlalitha/jenkins-java:latest'
+                 //sh 'docker build -t sample:latest .'
+                 //sh 'docker tag sample mlalitha/sample:latest'
+                 //sh 'docker tag samplewebapp nikhilnidhi/samplewebapp:$BUILD_NUMBER'
+
                 }
+        }
+        stage('Login') {
+            steps {
+
+              sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
+
             }
-         }
-         stage('Pushing Docker image into ECR'){
-           steps{
-             script{
-                sh "docker push ${REPOSITORY_URI}:mavenwebapp-${COMMIT}"
-                }
-           }
+
         }
+
+        stage('Push') {
+          steps {
+              sh 'docker push mlalitha/jenkins-java:latest'
+             //sh 'docker push mlalitha/sample:latest'
+            }
+
+        }
+        
+    }
+
+//         stage('Publish image to Docker Hub') {
+
+//           steps {
+//               withDockerRegistry([ credentialsId: "docker", url: "https://hub.docker.com/" ]) {
+//                   echo "$MY_PASSWORD" | docker login --username foo --password-stdin
+//               sh 'docker push mlalitha/jen-java:latest'
+//               // sh 'docker push nikhilnidhi/samplewebapp:$BUILD_NUMBER'
+               
+//             }
+
+// }
+    // stage('Login to AWS ECR'){
+    //     steps{
+    //         script{
+    //           sh "/usr/local/bin/aws ecr get-login-password --region ${AWS_DEFAULT_REGION} | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com"
+    //           }
+    //       }
+    //     }
+    // stage('Building Docker Image'){
+    //     steps{
+    //         script{
+    //             sh "docker build . -t ${REPOSITORY_URI}:mavenwebapp-${COMMIT}"
+    //             }
+    //         }
+    //      }
+    // stage('Pushing Docker image into ECR'){
+    //     steps{
+    //         script{
+    //             sh "docker push ${REPOSITORY_URI}:mavenwebapp-${COMMIT}"
+    //         }
+    //     }
+    // }
 }
-    
