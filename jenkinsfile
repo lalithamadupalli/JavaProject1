@@ -4,22 +4,16 @@ pipeline {
         maven 'maven3.8'
         
     }
-    environment
+    environment {
+       AWS_ACCOUNT_ID="021893396084"
+       AWS_DEFAULT_REGION="ap-south-1"
+       IMAGE_REPO_NAME="jen-java"
+       IMAGE_TAG="latest"
+       REPOSITORY_URI= "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${IMAGE_REPO_NAME}"
+       //registory= 021893396084.dkr.ecr.ap-south-1.amazonaws.com/jen-java
+       DOCKERHUB_CREDENTIALS=credentials('docker')
 
-{
-
-AWS_ACCOUNT_ID="021893396084"
-
-AWS_DEFAULT_REGION="ap-south-1"
-
-IMAGE_REPO_NAME="jen-java"
-
-REPOSITORY_URI= "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${IMAGE_REPO_NAME}"
-
-DOCKERHUB_CREDENTIALS=credentials('docker')
-
-
-}
+   }
 
 
     stages {
@@ -52,72 +46,79 @@ DOCKERHUB_CREDENTIALS=credentials('docker')
                 ], 
                 credentialsId: 'nexus', 
                 groupId: 'com.example.maven-project', 
-                nexusUrl: 'http://http://13.127.124.29:8081', 
+                nexusUrl: '13.232.38.167:8081', 
                 nexusVersion: 'nexus3', 
                 protocol: 'http', 
                 repository: 'java-nexus', 
                 version: '1.0.0'
             }
         }
-        stage('Docker Build and Tag') {
-              steps {
-                  sh 'docker build -t jenkins-java:latest .'
-                  sh 'docker tag jenkins-java mlalitha/jenkins-java:latest'
-                 //sh 'docker build -t sample:latest .'
-                 //sh 'docker tag sample mlalitha/sample:latest'
-                 //sh 'docker tag samplewebapp nikhilnidhi/samplewebapp:$BUILD_NUMBER'
-
-                }
-        }
-        stage('Login') {
+        stage('Logging into AWS ECR') {
             steps {
-
-              sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
-
+                script {
+                sh "aws ecr get-login-password --region ${AWS_DEFAULT_REGION} | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com"
+                }
+                 
             }
-
         }
-
-        stage('Push') {
-          steps {
-              sh 'docker push mlalitha/jenkins-java:latest'
-             //sh 'docker push mlalitha/sample:latest'
+          // Building Docker images
+        stage('Building image') {
+            steps{
+               script {
+                   dockerImage = docker.build "${IMAGE_REPO_NAME}:${IMAGE_TAG}"
+                }
             }
-
         }
         
-    }
+        stage('Pushing to ECR') {
+          steps{  
+              script {
+                  sh "docker tag ${IMAGE_REPO_NAME}:${IMAGE_TAG} ${REPOSITORY_URI}:$IMAGE_TAG"
+                  sh "docker push ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com/${IMAGE_REPO_NAME}:${IMAGE_TAG}"
+                }
+            }
+        }
+        stage('Docker Build and Tag') {
+           steps {
+             sh 'docker build -t jen-java:latest .'
+             sh 'docker tag jen-java mlalitha/jenkins-java:latest'
+                  //sh 'docker build -t sample:latest .'
+                  //sh 'docker tag sample mlalitha/sample:latest'
+                  //sh 'docker tag samplewebapp nikhilnidhi/samplewebapp:$BUILD_NUMBER'
 
-//         stage('Publish image to Docker Hub') {
-
+            }
+        }
+        stage('Login') {
+          steps {
+              sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
+            }
+        }    
+        stage('Push to dockerhub') {
+          steps {
+            sh 'docker push mlalitha/jenkins-java:latest'
+             //sh 'docker push mlalitha/sample:latest'
+            }
+        }
+//      stage('docker image') {
+//          steps {
+//              sh 'docker build -t jen-java .'
+//              sh 'docker tag jen-java:latest 021893396084.dkr.ecr.ap-south-1.amazonaws.com/jen-java:latest'
+//            }
+//        }
+//       stage('docker build') {
 //           steps {
-//               withDockerRegistry([ credentialsId: "docker", url: "https://hub.docker.com/" ]) {
-//                   echo "$MY_PASSWORD" | docker login --username foo --password-stdin
-//               sh 'docker push mlalitha/jen-java:latest'
-//               // sh 'docker push nikhilnidhi/samplewebapp:$BUILD_NUMBER'
-               
+//              script {
+//                 docker image= docker.build 
+//              }
+//           }
+//        }
+//         stage('docker push') {
+//             steps {
+//                 script {
+//                     sh 'aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin 021893396084.dkr.ecr.ap-south-1.amazonaws.com'
+//                     sh 'docker push 021893396084.dkr.ecr.ap-south-1.amazonaws.com/jen-java:latest'
+//                 }
 //             }
-
-// }
-    // stage('Login to AWS ECR'){
-    //     steps{
-    //         script{
-    //           sh "/usr/local/bin/aws ecr get-login-password --region ${AWS_DEFAULT_REGION} | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_DEFAULT_REGION}.amazonaws.com"
-    //           }
-    //       }
-    //     }
-    // stage('Building Docker Image'){
-    //     steps{
-    //         script{
-    //             sh "docker build . -t ${REPOSITORY_URI}:mavenwebapp-${COMMIT}"
-    //             }
-    //         }
-    //      }
-    // stage('Pushing Docker image into ECR'){
-    //     steps{
-    //         script{
-    //             sh "docker push ${REPOSITORY_URI}:mavenwebapp-${COMMIT}"
-    //         }
-    //     }
-    // }
+//         }
+}
 }
