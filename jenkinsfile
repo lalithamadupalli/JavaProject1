@@ -18,11 +18,11 @@ pipeline {
 
 
     stages {   
-        stage('parameter') {
-            steps {
-                options([parameters([choice(choices: 'v1.0\njavav1.1', description: 'build based on tags', name: 'tags')]), pipelineTriggers([githubPush()])])
-            }
-        }     
+        // stage('parameter') {
+        //     steps {
+        //         options([parameters([choice(choices: 'v1.0\njavav1.1', description: 'build based on tags', name: 'tags')]), pipelineTriggers([githubPush()])])
+        //     }
+        // }     
         stage('checkout') {
             steps {
                 echo "pulling changes from the tags ${params.tags}"
