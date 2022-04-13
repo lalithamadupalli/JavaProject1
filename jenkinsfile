@@ -99,41 +99,20 @@ pipeline {
              //sh 'docker push mlalitha/sample:latest'
             }
         }
-//      stage('docker image') {
-//          steps {
-//              sh 'docker build -t jen-java .'
-//              sh 'docker tag jen-java:latest 021893396084.dkr.ecr.ap-south-1.amazonaws.com/jen-java:latest'
-//            }
-//        }
-//       stage('docker build') {
-//           steps {
-//              script {
-//                 docker image= docker.build 
-//              }
-//           }
-//        }
-//         stage('docker push') {
-//             steps {
-//                 script {
-//                     sh 'aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin 021893396084.dkr.ecr.ap-south-1.amazonaws.com'
-//                     sh 'docker push 021893396084.dkr.ecr.ap-south-1.amazonaws.com/jen-java:latest'
-//                 }
-//             }
-//         }
-           stage('stop previous containers') {
-              steps {
-                 sh 'docker ps -f name=java-jen -q | xargs --no-run-if-empty docker container stop'
-                 sh 'docker container ls -a -fname=java-jen -q | xargs -r docker container rm'
-                 }
+        stage('stop previous containers') {
+            steps {
+                sh 'docker ps -f name=java-jen -q | xargs --no-run-if-empty docker container stop'
+                sh 'docker container ls -a -fname=java-jen -q | xargs -r docker container rm'
+                }
             }
-           stage('Run the Docker Image') {
-              steps{
-                 script {
+        stage('Run the Docker Image') {
+            steps{
+                script {
                    sh "docker run -d -p 9090:8080 --rm --name java-jen ${REPOSITORY_URI}:latest"
-                 }
-             }
-          }
- }
- }
+                }
+            }
+        }
+    }
+}
 
 
