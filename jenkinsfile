@@ -25,8 +25,8 @@ pipeline {
         // }     
         stage('checkout') {
             steps {
-                echo "pulling changes from the tags ${params.tags}"
-                git credentialsId: 'git', url: 'https://github.com/lalithamadupalli/JavaProject1.git', branch: "${params.tags}"
+                //echo "pulling changes from the tags ${params.tags}"
+                git credentialsId: 'git', url: 'https://github.com/lalithamadupalli/JavaProject1.git'
             }
         }
         stage('build') {
