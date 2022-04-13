@@ -17,6 +17,28 @@ pipeline {
 
 
     stages {
+        stage('parameter') {
+            steps {
+                properties(
+                    [
+                        parameters(
+                            [
+                                gitParameter(
+                                    branch: 'master', 
+                                    branchFilter: '.*', 
+                                    defaultValue: 'v1.0', 
+                                    name: 'git-tag', 
+                                    quickFilterEnabled: false, 
+                                    selectedValue: 'v1.0', 
+                                    sortMode: 'NONE', tagFilter: '*', type: 'GitParameterDefinition'
+                                )
+                            ]
+                        ), 
+                        pipelineTriggers([githubPush()])
+                    ]
+                )
+            }
+        }
         stage('checkout') {
             steps {
                 git credentialsId: 'git', url: 'https://github.com/lalithamadupalli/JavaProject1.git'
