@@ -14,34 +14,14 @@ pipeline {
        DOCKERHUB_CREDENTIALS=credentials('docker')
 
    }
+   properties([parameters([choice(choices: 'v1.0\njavav1.1', description: 'build based on tags', name: 'tags')]), pipelineTriggers([githubPush()])])
 
 
-    stages {
-        stage('parameter') {
-            steps {
-                properties(
-                    [
-                        parameters(
-                            [
-                                gitParameter(
-                                    branch: 'master', 
-                                    branchFilter: '.*', 
-                                    defaultValue: 'v1.0', 
-                                    name: 'git-tag', 
-                                    quickFilterEnabled: false, 
-                                    selectedValue: 'v1.0', 
-                                    sortMode: 'NONE', tagFilter: '*', type: 'GitParameterDefinition'
-                                )
-                            ]
-                        ), 
-                        pipelineTriggers([githubPush()])
-                    ]
-                )
-            }
-        }
+    stages {        
         stage('checkout') {
             steps {
-                git credentialsId: 'git', url: 'https://github.com/lalithamadupalli/JavaProject1.git'
+                echo "pulling changes from the tags ${params.tags}"
+                git credentialsId: 'git', url: 'https://github.com/lalithamadupalli/JavaProject1.git', tags: "${params.tags}"
             }
         }
         stage('build') {
