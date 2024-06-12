@@ -216,5 +216,28 @@
   <prerequisites>
     <maven>3.0.3</maven>
   </prerequisites>
+         <settings>
+    <pluginGroups>
+        <pluginGroup>org.sonarsource.scanner.maven</pluginGroup>
+    </pluginGroups>
+    <profiles>
+        <profile>
+            <id>sonar</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                     mvn clean verify sonar:sonar \
+                         -Dsonar.projectKey=java-proj \
+                         -Dsonar.host.url=http://13.127.107.203:9000 \
+                         -Dsonar.login=a2ca816fc6e596332de0e14974974a5f21914f49
+                <!-- Optional URL to server. Default value is http://localhost:9000 -->
+                <sonar.host.url>
+                  http://13.127.107.203:9000
+                </sonar.host.url>
+            </properties>
+        </profile>
+     </profiles>
+</settings>
 
 </project>
